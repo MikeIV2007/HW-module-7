@@ -197,4 +197,6 @@ delete_empty_folders(path)
 unzip_archivez(path_archives)
 print_lists()
 
+
+
 #Path to test:  python clean_folder\\clean_folder\\clean.py D:\\VSCode_projects\\Unsorted_hw6_main
