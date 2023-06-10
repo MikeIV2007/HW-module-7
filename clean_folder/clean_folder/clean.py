@@ -1,5 +1,6 @@
 import os
 import sys
+from pathlib import Path
 import shutil
 import zipfile
 
@@ -162,8 +163,8 @@ def get_pathes_create_folsers():
     global path_archives
     global path_unknown
 
-    path_input = sys.argv
-    path = path_input[1]
+    # path_input = sys.argv
+    # path = path_input[1]
 
     path_images = os.path.join(path, 'images')
     if not os.path.exists(path_images):
@@ -191,12 +192,30 @@ def get_pathes_create_folsers():
 
     return path, path_images, path_video, path_documents, path_music, path_archives, path_unknown
 
-get_pathes_create_folsers()
-sort_folder(path)
-delete_empty_folders(path)
-unzip_archivez(path_archives)
-print_lists()
+# get_pathes_create_folsers()
+# sort_folder(path)
+# delete_empty_folders(path)
+# unzip_archivez(path_archives)
+# print_lists()
+def main():
+    try:
+        # sys.argv returns list comprising two strings: ['location of the .py file', 'location of the folder to scan']
+        path = Path(sys.argv[1]) #Path - fanction from pathlib. it is allow to copy path form the explorer withot '//'
+    except IndexError:
+        return print ('There is no path to folder! Enter path!')
+   
+    if not path.exists():
+        return print (f'The path <<< {path} >>> doesn\'t exist! Enter valid path!')
+    
 
 
+if __name__ == '__main__':
+    main()
+    # get_pathes_create_folsers()
+    # sort_folder(path)
+    # delete_empty_folders(path)
+    # unzip_archivez(path_archives)
+    # print_lists()
+    # print('0k')
 
-#Path to test:  python clean_folder\\clean_folder\\clean.py D:\\VSCode_projects\\Unsorted_hw6_main
+#Path to test:  python clean_folder\clean_folder\clean.py D:\VSCode_projects\Unsorted_hw6_main

@@ -15,7 +15,7 @@ setup(name='clean_folder', # packege name
     #data_files=['list of data files'], # not done yet
     #include_package_data=True
     install_requires='requires',#?
-    entry_points={'console_scripts': ['clean-folder = clean_folder.clean:run']} # run : create function to start input of arguments?
+    entry_points={'console_scripts': ['clean-folder = clean_folder.clean:main']} # main : created function to privide input of arguments by means of sysargv
     
     )
 
