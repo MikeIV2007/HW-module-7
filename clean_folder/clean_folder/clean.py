@@ -1,40 +1,22 @@
 import os
 import sys
 from pathlib import Path
-import shutil
+#import shutil
 import zipfile
+import uuid 
+
+CATEGORIES = {'Images' : ['.jpeg', '.png', '.jpg', '.svg'], 
+              'Video' : ['.avi', '.mp4', '.mov', '.mkv', '.wmv'],
+              'Documents' : ['.doc', '.docx', '.txt', '.pdf', '.xlsx', '.pptx'],
+              'Music': ['.mp3', '.ogg', '.wav', '.amr'],
+              'Archives' : ['.zip', '.gz', '.tar'],
+              'Unkknown' : []} 
 
 
-images = []
-images_tmp = ['.jpeg', '.png', '.jpg', '.svg']
-
-video = [] 
-video_tmp = ['.avi', '.mp4', '.mov', '.mkv', '.wmv']
-
-documents = []
-documents_tmp =['.doc', '.docx', '.txt', '.pdf', '.xlsx', '.pptx']
-
-music = [] 
-music_tmp =  ['.mp3', '.ogg', '.wav', '.amr']
-
-archives = []
-archives_tmp =  ['.zip', '.gz', '.tar']
-
-unknown = []
-
-all_extentions_tmp = images_tmp + video_tmp + documents_tmp + music_tmp + archives_tmp
-
-all_extentions = set()
+#all_extentions_tmp = images_tmp + video_tmp + documents_tmp + music_tmp + archives_tmp
+#all_extentions = set()
 
 
-
-path = ''
-path_images = ''
-path_video = ''
-path_documents = ''
-path_music = ''
-path_archives = ''
-path_unknown = ''
 
 
 CYRILLIC_SYMBOLS = "абвгдеёжзийклмнопрстуфхцчшщъыьэюяєіїґ"
@@ -61,63 +43,17 @@ def normalize(text):
             text = text.replace(chr, "_")
     return text
 
-def sort_folder(path):
-  
-    for i in os.listdir(path):
-         
-        if os.path.isdir(os.path.join(path, i)) == True:
-            folder_name = normalize(i)
-            os.rename(os.path.join(path, i), os.path.join(path,folder_name))
-            sort_folder(os.path.join(path, folder_name))
 
-        if os.path.isfile(os.path.join(path, i)) == True:
-            file_name = i
-            file_extension = list (os.path.splitext(file_name))
-            file_extension[0] = normalize(file_extension[0])
-            file_name = file_extension[0] + file_extension[1]
-            ## renaming path or derictory: os.rename(original_path, new_path)
-            os.rename(os.path.join(path, i), os.path.join(path, file_name))
-            # file renamed by normilized name 
-    
+# def delete_empty_folders(path: Path) -> None:
+#     for item in path.glob('**/*'):
+#         #if item.is_dir() and not any(item.iterdir()):
+#         if item.is_dir() and len(item) == 0:
+#             item.rmdir() 
 
-            if file_extension[1] in images_tmp:
-                all_extentions.add(file_extension[1])
-                images.append(file_name)
-                shutil.move(os.path.join(path, file_name), os.path.join(path_images, file_name))
-                
-               
-            if file_extension[1] in video_tmp:
-                all_extentions.add(file_extension[1])
-                video.append(file_name)
-                shutil.move(os.path.join(path, file_name), os.path.join(path_video, file_name))
-                                          
-
-            if file_extension[1] in documents_tmp:
-                all_extentions.add(file_extension[1])
-                documents.append(file_name)
-                shutil.move(os.path.join(path, file_name), os.path.join(path_documents, file_name))          
-
-
-            if file_extension[1] in music_tmp:
-                all_extentions.add(file_extension[1])
-                music.append(file_name)
-                shutil.move(os.path.join(path, file_name), os.path.join(path_music, file_name))
-
-
-            if file_extension[1] in archives_tmp:
-                all_extentions.add(file_extension[1])
-                archives.append(file_name)
-                shutil.move(os.path.join(path, file_name), os.path.join(path_archives, file_name))
-
-            if file_extension[1] not in all_extentions_tmp:
-                all_extentions.add(file_extension[1])
-                unknown.append(file_name)
-                shutil.move(os.path.join(path, file_name), os.path.join(path_unknown, file_name))
-
-    return images, video, documents, music, unknown, all_extentions
 
 def delete_empty_folders(path):
     for root, dirs, files in os.walk(path, topdown=False):
+        # os.walk iterates over all the files and directories in a directory tree recursively.
 
         for folder in dirs:
             folder_path = os.path.join(root, folder)
@@ -125,72 +61,75 @@ def delete_empty_folders(path):
             if not os.listdir(folder_path):  # Check if folder is empty
                 os.rmdir(folder_path)
 
-def unzip_archivez(path_archves):
 
-    for i in os.listdir(path_archives):
-        file_extension = list (os.path.splitext(i))
-        folder_name = file_extension[0]
+def move_file(file: Path, root_dir: Path, category: str) -> None:
+
+    target_dir = root_dir.joinpath(category)
+
+    if not target_dir.exists():
+        target_dir.mkdir()
+
+    new_file_name = target_dir.joinpath(f'{normalize(file.stem)}{file.suffix}')
+    # file.stem -file nam/ fil.suffix - file extention
+
+    if new_file_name.exists():
+       new_file_name = new_file_name.with_name(f"{new_file_name.stem}-{uuid.uuid4()}{file.suffix}")
+       # uuid.uuid4() is a function from the uuid module used to generate a random UUID (Universally Unique Identifier)
+
+    file.rename(new_file_name)    
+
+
+def get_categories(file: Path) -> str:
+    ext = file.suffix.lower()# 'file.suffix ' is an attribute of a Path object from the pathlib module (represents the file extension)
+    for cat, exts in CATEGORIES.items():
+        if ext in exts:
+            return cat
+    cat = 'Unknown'
+    return cat
+
+
+def sort_folder(path: Path) -> None:
+    for item in path.glob('**/*'):# 'glob('**/*')' searches for all files and directories recursively
+        #print(item)
+        if item.is_file():# item.is_file() is a method of pathlib 
+            category = get_categories(item)
+            move_file(item, path, category)
+    delete_empty_folders(path)
+    print_lists(path)
+    #unzip_archives(path)
+
+
+def unzip_archives(path: Path) -> None:
+
+    path_archives = os.path.join(path,'Archives')
+
+    if os.path.exists(path_archives):
+
+        for i in os.listdir(path_archives):
+            file_extension = list (os.path.splitext(i))
+            folder_name = file_extension[0]
+        
+            extraction_path = os.path.join(path_archives, folder_name)
+
+            if not os.path.exists(extraction_path):
+                os.makedirs(extraction_path)
+
+            with zipfile.ZipFile(os.path.join(path_archives, i), 'r') as zip_ref:
+                zip_ref.extractall(extraction_path)
+
+
+def print_lists(path: Path)-> list:
+
+    # Get a list of files in the directory and its subdirectories
+    file_list = list(path.glob('**/*'))  # Using glob with '**/*' matches files recursively
+
+    # Filter the list to include only files (excluding directories)
+    file_list = [file for file in file_list if file.is_file()]
+
+    # Print the file paths
+    for file in file_list:
+        print(file)
     
-        extraction_path = os.path.join(path_archives, folder_name)
-
-        if not os.path.exists(extraction_path):
-            os.makedirs(extraction_path)
-
-        with zipfile.ZipFile(os.path.join(path_archives, i), 'r') as zip_ref:
-            zip_ref.extractall(extraction_path)
-
-
-def print_lists():
-
-    all_extentions_list =list(all_extentions)
-
-    print ('\nImages = ',images, '\n',
-        '\nVideo = ',video, '\n'
-        '\nDocuments = ',documents, '\n'
-        '\nMusic = ',music, '\n'
-        '\nArchives = ',archives, '\n'
-        '\nUnknown = ',unknown, '\n'
-        '\nAll_exstensions = ',all_extentions_list)
-    
-
-
-def get_pathes_create_folsers():
-    global path
-    global path_images
-    global path_video
-    global path_documents
-    global path_music
-    global path_archives
-    global path_unknown
-
-    # path_input = sys.argv
-    # path = path_input[1]
-
-    path_images = os.path.join(path, 'images')
-    if not os.path.exists(path_images):
-        os.makedirs(path_images)
-
-    path_video = os.path.join(path, 'video')
-    if not os.path.exists(path_video):
-        os.makedirs(path_video)
-
-    path_documents =os.path.join(path, 'documents')
-    if not os.path.exists(path_documents):
-        os.makedirs(path_documents)
-
-    path_music = os.path.join(path, 'music')
-    if not os.path.exists(path_music):
-        os.makedirs(path_music)
-
-    path_archives = os.path.join(path, 'archives')
-    if not os.path.exists(path_archives):
-        os.makedirs(path_archives)
-
-    path_unknown = os.path.join(path, 'unknown')
-    if not os.path.exists(path_unknown):
-        os.makedirs(path_unknown)
-
-    return path, path_images, path_video, path_documents, path_music, path_archives, path_unknown
 
 # get_pathes_create_folsers()
 # sort_folder(path)
@@ -206,16 +145,12 @@ def main():
    
     if not path.exists():
         return print (f'The path <<< {path} >>> doesn\'t exist! Enter valid path!')
+    sort_folder(path)
+    return "Folder sorting completed successfully"
     
 
-
 if __name__ == '__main__':
-    main()
-    # get_pathes_create_folsers()
-    # sort_folder(path)
-    # delete_empty_folders(path)
-    # unzip_archivez(path_archives)
-    # print_lists()
-    # print('0k')
+    print(main())
 
 #Path to test:  python clean_folder\clean_folder\clean.py D:\VSCode_projects\Unsorted_hw6_main
+#Path to test:  python clean_folder\clean_folder\clean.py D:\VSCode_projects\Unsorted_hw6_main_repeat
