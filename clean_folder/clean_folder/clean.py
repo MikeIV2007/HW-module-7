@@ -117,25 +117,16 @@ def unzip_archives(path: Path) -> None:
             with zipfile.ZipFile(os.path.join(path_archives, i), 'r') as zip_ref:
                 zip_ref.extractall(extraction_path)
 
+def print_lists(path: Path) -> list:
+    for item in path.glob('**/*'):
+        if item.is_dir():
+            list = []
+            category_name = item.name
 
-def print_lists(path: Path)-> list:
+            for file in item.glob('*'):
+                list.append(file)
+            print (f'\nlist of {category_name} : {list}\n')
 
-    # Get a list of files in the directory and its subdirectories
-    file_list = list(path.glob('**/*'))  # Using glob with '**/*' matches files recursively
-
-    # Filter the list to include only files (excluding directories)
-    file_list = [file for file in file_list if file.is_file()]
-
-    # Print the file paths
-    for file in file_list:
-        print(file)
-    
-
-# get_pathes_create_folsers()
-# sort_folder(path)
-# delete_empty_folders(path)
-# unzip_archivez(path_archives)
-# print_lists()
 def main():
     try:
         # sys.argv returns list comprising two strings: ['location of the .py file', 'location of the folder to scan']
