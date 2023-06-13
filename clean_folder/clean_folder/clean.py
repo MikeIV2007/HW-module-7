@@ -1,7 +1,6 @@
 import os
 import sys
 from pathlib import Path
-#import shutil
 import zipfile
 import uuid 
 
@@ -73,9 +72,9 @@ def move_file(file: Path, root_dir: Path, category: str) -> None:
     # file.stem -file nam/ fil.suffix - file extention
 
     if new_file_name.exists():
-       new_file_name = new_file_name.with_name(f"{new_file_name.stem}-{uuid.uuid4()}{file.suffix}")
-       # uuid.uuid4() is a function from the uuid module used to generate a random UUID (Universally Unique Identifier)
-
+        new_file_name = new_file_name.with_name(f"{new_file_name.stem}-{uuid.uuid4()}{file.suffix}")
+        # uuid.uuid4() is a function from the uuid module used to generate a random UUID (Universally Unique Identifier)
+        
     file.rename(new_file_name)    
 
 
@@ -96,7 +95,8 @@ def sort_folder(path: Path) -> None:
             move_file(item, path, category)
     delete_empty_folders(path)
     print_lists(path)
-    #unzip_archives(path)
+    print_all_exrentions(path)
+    unzip_archives(path)
 
 
 def unzip_archives(path: Path) -> None:
@@ -120,12 +120,22 @@ def unzip_archives(path: Path) -> None:
 def print_lists(path: Path) -> list:
     for item in path.glob('**/*'):
         if item.is_dir():
-            list = []
+            file_list = []
             category_name = item.name
 
             for file in item.glob('*'):
-                list.append(file)
-            print (f'\nlist of {category_name} : {list}\n')
+                file_list.append(file.name)
+            print (f'\nList of {category_name} : {file_list}\n')
+
+def print_all_exrentions(path: Path)-> list:
+        all_ext_set = set()
+        
+        for item in path.glob('**/*'):
+            if item.is_file():
+                ext = item.suffix
+                all_ext_set.add(ext)
+        all_ext_list = list(all_ext_set)
+        print (f'List of all found extentions  :  {all_ext_list}\n')
 
 def main():
     try:
@@ -137,7 +147,7 @@ def main():
     if not path.exists():
         return print (f'The path <<< {path} >>> doesn\'t exist! Enter valid path!')
     sort_folder(path)
-    return "Folder sorting completed successfully"
+    return "Folder sorting completed successfully\n"
     
 
 if __name__ == '__main__':
