@@ -11,53 +11,38 @@ CATEGORIES = {'Images' : ['.jpeg', '.png', '.jpg', '.svg'],
               'Archives' : ['.zip', '.gz', '.tar'],
               'Unkknown' : []} 
 
-
-#all_extentions_tmp = images_tmp + video_tmp + documents_tmp + music_tmp + archives_tmp
-#all_extentions = set()
-
-
-
-
 CYRILLIC_SYMBOLS = "абвгдеёжзийклмнопрстуфхцчшщъыьэюяєіїґ"
 TRANSLATION = ("a", "b", "v", "g", "d", "e", "e", "j", "z", "i", "j", "k", "l", "m", "n", "o", "p", "r", "s", "t", "u",
                "f", "h", "ts", "ch", "sh", "sch", "", "y", "", "e", "yu", "ya", "je", "i", "ji", "g")
 
-#creation of dictionary for trancliteration
 TRANS = {} 
 
 for c, l in zip(CYRILLIC_SYMBOLS, TRANSLATION):
     TRANS[ord(c)] = l
     TRANS[ord(c.upper())] = l.upper()
 
-def normalize(text):
+def normalize(text: str) ->str:
     text = text.translate(TRANS)
     for chr in text:
-        if ord(chr) in range(48,58):# (0-9)
+        if ord(chr) in range(48,58):
             continue
-        elif ord(chr) in range(65,91):#(A-Z)
+        elif ord(chr) in range(65,91):
             continue
-        elif ord(chr) in range(97,123):#(a-z)
+        elif ord(chr) in range(97,123):
             continue
         else:
             text = text.replace(chr, "_")
     return text
 
 
-# def delete_empty_folders(path: Path) -> None:
-#     for item in path.glob('**/*'):
-#         #if item.is_dir() and not any(item.iterdir()):
-#         if item.is_dir() and len(item) == 0:
-#             item.rmdir() 
-
-
-def delete_empty_folders(path):
+def delete_empty_folders(path: Path) ->None:
+    
     for root, dirs, files in os.walk(path, topdown=False):
-        # os.walk iterates over all the files and directories in a directory tree recursively.
-
+        
         for folder in dirs:
             folder_path = os.path.join(root, folder)
         
-            if not os.listdir(folder_path):  # Check if folder is empty
+            if not os.listdir(folder_path):
                 os.rmdir(folder_path)
 
 
@@ -69,17 +54,17 @@ def move_file(file: Path, root_dir: Path, category: str) -> None:
         target_dir.mkdir()
 
     new_file_name = target_dir.joinpath(f'{normalize(file.stem)}{file.suffix}')
-    # file.stem -file nam/ fil.suffix - file extention
 
     if new_file_name.exists():
         new_file_name = new_file_name.with_name(f"{new_file_name.stem}-{uuid.uuid4()}{file.suffix}")
-        # uuid.uuid4() is a function from the uuid module used to generate a random UUID (Universally Unique Identifier)
         
     file.rename(new_file_name)    
 
 
 def get_categories(file: Path) -> str:
-    ext = file.suffix.lower()# 'file.suffix ' is an attribute of a Path object from the pathlib module (represents the file extension)
+
+    ext = file.suffix.lower()
+
     for cat, exts in CATEGORIES.items():
         if ext in exts:
             return cat
@@ -88,9 +73,10 @@ def get_categories(file: Path) -> str:
 
 
 def sort_folder(path: Path) -> None:
-    for item in path.glob('**/*'):# 'glob('**/*')' searches for all files and directories recursively
-        #print(item)
-        if item.is_file():# item.is_file() is a method of pathlib 
+
+    for item in path.glob('**/*'):
+        
+        if item.is_file(): 
             category = get_categories(item)
             move_file(item, path, category)
     delete_empty_folders(path)
@@ -135,12 +121,11 @@ def print_all_exrentions(path: Path)-> list:
                 ext = item.suffix
                 all_ext_set.add(ext)
         all_ext_list = list(all_ext_set)
-        print (f'List of all found extentions  :  {all_ext_list}\n')
+        print (f'\nList of all found extentions  :  {all_ext_list}\n')
 
 def main():
     try:
-        # sys.argv returns list comprising two strings: ['location of the .py file', 'location of the folder to scan']
-        path = Path(sys.argv[1]) #Path - fanction from pathlib. it is allow to copy path form the explorer withot '//'
+        path = Path(sys.argv[1])
     except IndexError:
         return print ('There is no path to folder! Enter path!')
    
