@@ -141,4 +141,4 @@ if __name__ == '__main__':
 #Path to test:  python clean_folder\clean_folder\clean.py D:\VSCode_projects\Unsorted_hw6_main
 #Path to test:  python clean_folder\clean_folder\clean.py D:\VSCode_projects\Unsorted_hw6_main_repeat
 # to Install packge: pip install -e D:\VSCode_projects\HW-module-7\clean_folder
-# to start installed skript: clean-folder D:\VSCode_projects\HW-module-6
+# to start installed skript: clean-folder D:\VSCode_projects\Unsorted_hw6_main
